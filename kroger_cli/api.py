@@ -12,9 +12,7 @@ class KrogerAPI:
     browser_options = {
         'headless': False,
         'devtools': True,
-        'userDataDir': '.user-data',
-        'args': ['--blink-settings=imagesEnabled=false',  # Disable images for hopefully faster load-time
-                 '--no-sandbox']
+        'args': ['--blink-settings=imagesEnabled=false']
     }
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -227,11 +225,14 @@ class KrogerAPI:
     async def init(self):
         self.browser = await launch(self.browser_options)
         self.page = await self.browser.newPage()
+        # self.page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
         await self.page.setExtraHTTPHeaders(self.headers)
         await self.page.setViewport({'width': 700, 'height': 0})
         await self.page.evaluateOnNewDocument("""() => {
-        delete navigator.__proto__.webdriver;
-            }""")
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => false
+            })
+        }""")
         await self.page.setRequestInterception(True)
         self.page.on('request', self.onReq)
 
