@@ -12,7 +12,8 @@ class KrogerAPI:
     browser_options = {
         'headless': False,
         'devtools': True,
-        'args': ['--blink-settings=imagesEnabled=false']
+        'args': ['--blink-settings=imagesEnabled=false'],
+        'executablePath': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
     }
     headers = {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -217,6 +218,7 @@ class KrogerAPI:
     def onReq(request):
         regex = "adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}"
         url = request.url()
+        print(url);
         if (re.match(regex, url)):
             request.abort()
         else:
@@ -228,12 +230,14 @@ class KrogerAPI:
         # self.page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
         await self.page.setExtraHTTPHeaders(self.headers)
         await self.page.setViewport({'width': 700, 'height': 0})
-        await self.page.evaluateOnNewDocument("""() => {
+        await self.page.evaluateOnNewDocument("""
+        () => {
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => false
             })
-        }""")
-        await self.page.setRequestInterception(True)
+        }
+        """)
+        self.page.setRequestInterception(True)
         self.page.on('request', self.onReq)
 
     async def destroy(self):
@@ -266,6 +270,15 @@ class KrogerAPI:
         if not self.browser_options['headless']:
             timeout = 60000
         await self.page.goto('https://www.' + self.cli.config['main']['domain'] + '/signin?redirectUrl=' + redirect_url)
+        dimensions = await self.page.evaluate('''() => {
+        return {
+            width: document.documentElement.clientWidth,
+            height: document.documentElement.clientHeight,
+            deviceScaleFactor: window.devicePixelRatio,
+        }
+    }''')
+
+        print(dimensions)
         await self.page.click('#SignIn-emailInput', {'clickCount': 3})  # Select all in the field
         await self.page.type('#SignIn-emailInput', self.cli.username)
         await self.page.click('#SignIn-passwordInput', {'clickCount': 3})
