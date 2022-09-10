@@ -215,14 +215,14 @@ class KrogerAPI:
 
         return data
 
-    def onReq(request):
-        regex = "adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}"
-        url = request.url()
-        print(url);
-        if (re.match(regex, url)):
-            request.abort()
+    async def onReq(self, request):
+        regex = re.compile("adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}")
+        url = request.url
+        print(url)
+        if (regex.search(url)):
+            await request.abort()
         else:
-            request.continue_()
+            await request.continue_()
 
     async def init(self):
         self.browser = await launch(self.browser_options)
@@ -237,7 +237,7 @@ class KrogerAPI:
             })
         }
         """)
-        self.page.setRequestInterception(True)
+        await self.page.setRequestInterception(True)
         self.page.on('request', self.onReq)
 
     async def destroy(self):
