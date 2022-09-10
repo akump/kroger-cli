@@ -219,7 +219,7 @@ class KrogerAPI:
         regex = re.compile("clarity|pinterest|adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}")
         url = request.url
         if (regex.search(url)):
-            await request.continue_()
+            await request.abort()
             print(url)
 
         else:
