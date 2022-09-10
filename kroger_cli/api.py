@@ -216,18 +216,19 @@ class KrogerAPI:
         return data
 
     async def onReq(self, request):
-        regex = re.compile("adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}")
+        regex = re.compile("clarity|pinterest|adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}")
         url = request.url
-        print(url)
         if (regex.search(url)):
-            await request.abort()
+            await request.continue_()
+            print(url)
+
         else:
             await request.continue_()
 
     async def init(self):
         self.browser = await launch(self.browser_options)
         self.page = await self.browser.newPage()
-        # self.page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
+        await self.page.setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
         await self.page.setExtraHTTPHeaders(self.headers)
         await self.page.setViewport({'width': 700, 'height': 0})
         await self.page.evaluateOnNewDocument("""
