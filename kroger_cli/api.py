@@ -10,7 +10,8 @@ from pyppeteer import launch
 
 class KrogerAPI:
     browser_options = {
-        'headless': True,
+        'headless': False,
+        'devtools': True,
         'userDataDir': '.user-data',
         'args': ['--blink-settings=imagesEnabled=false',  # Disable images for hopefully faster load-time
                  '--no-sandbox']
@@ -215,11 +216,24 @@ class KrogerAPI:
 
         return data
 
+    def onReq(request):
+        regex = "adobe|mbox|ruxitagentjs|akam|sstats.kroger.com|rb_[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}"
+        url = request.url()
+        if (re.match(regex, url)):
+            request.abort()
+        else:
+            request.continue_()
+
     async def init(self):
         self.browser = await launch(self.browser_options)
         self.page = await self.browser.newPage()
         await self.page.setExtraHTTPHeaders(self.headers)
         await self.page.setViewport({'width': 700, 'height': 0})
+        await self.page.evaluateOnNewDocument("""() => {
+        delete navigator.__proto__.webdriver;
+            }""")
+        await self.page.setRequestInterception(True)
+        self.page.on('request', self.onReq)
 
     async def destroy(self):
         await self.page.close()
